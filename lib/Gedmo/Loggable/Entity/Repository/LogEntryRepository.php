@@ -24,7 +24,41 @@ class LogEntryRepository extends EntityRepository
      * @var LoggableListener
      */
     private $listener;
+    
+    /**
+     * Load Previous log entry for the given entity
+     *
+     * @param object $entity
+     *
+     * @return LogEntry[]
+     */
+    public function getPreviousLogEntry($entity)
+    {
+        $q = $this->getLogEntriesQuery($entity,2);
 
+        $result = $q->getResult();
+        
+        if(!isset($result[1])){
+            return null;
+        }else{
+            return $result[1];
+        }
+    }
+
+    /**
+     * Load current log entry for the given entity
+     *
+     * @param object $entity
+     *
+     * @return LogEntry[]
+     */
+    public function getCurrentLogEntry($entity)
+    {
+        $q = $this->getLogEntriesQuery($entity,1);
+
+        return $q->getResult();
+    }
+    
     /**
      * Loads all log entries for the given entity
      *
@@ -43,10 +77,11 @@ class LogEntryRepository extends EntityRepository
      * Get the query for loading of log entries
      *
      * @param object $entity
+     * @param integer $nbResult
      *
      * @return Query
      */
-    public function getLogEntriesQuery($entity)
+    public function getLogEntriesQuery($entity,$nbResult = 0)
     {
         $wrapped = new EntityWrapper($entity, $this->_em);
         $objectClass = $wrapped->getMetadata()->name;
@@ -59,6 +94,10 @@ class LogEntryRepository extends EntityRepository
         $objectId = (string) $wrapped->getIdentifier();
         $q = $this->_em->createQuery($dql);
         $q->setParameters(compact('objectId', 'objectClass'));
+        
+        if($nbResult != 0){
+            $q->setMaxResults($nbResult);
+        }
 
         return $q;
     }
