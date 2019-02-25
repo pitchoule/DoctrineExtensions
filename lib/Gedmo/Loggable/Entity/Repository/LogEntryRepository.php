@@ -1,14 +1,11 @@
 <?php
-
 namespace Gedmo\Loggable\Entity\Repository;
-
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Query;
 use Gedmo\Loggable\Entity\LogEntry;
 use Gedmo\Tool\Wrapper\EntityWrapper;
 use Doctrine\ORM\EntityRepository;
 use Gedmo\Loggable\LoggableListener;
-
 /**
  * The LogEntryRepository has some useful functions
  * to interact with log entries.
@@ -35,7 +32,6 @@ class LogEntryRepository extends EntityRepository
     public function getPreviousLogEntry($entity)
     {
         $q = $this->getLogEntriesQuery($entity,2);
-
         $result = $q->getResult();
         
         if(!isset($result[1])){
@@ -44,7 +40,6 @@ class LogEntryRepository extends EntityRepository
             return $result[1];
         }
     }
-
     /**
      * Load current log entry for the given entity
      *
@@ -55,7 +50,6 @@ class LogEntryRepository extends EntityRepository
     public function getCurrentLogEntry($entity)
     {
         $q = $this->getLogEntriesQuery($entity,1);
-
         return $q->getResult();
     }
     
@@ -69,10 +63,8 @@ class LogEntryRepository extends EntityRepository
     public function getLogEntries($entity)
     {
         $q = $this->getLogEntriesQuery($entity);
-
         return $q->getResult();
     }
-
     /**
      * Get the query for loading of log entries
      *
@@ -90,18 +82,15 @@ class LogEntryRepository extends EntityRepository
         $dql .= " WHERE log.objectId = :objectId";
         $dql .= " AND log.objectClass = :objectClass";
         $dql .= " ORDER BY log.version DESC";
-
         $objectId = (string) $wrapped->getIdentifier();
         $q = $this->_em->createQuery($dql);
         $q->setParameters(compact('objectId', 'objectClass'));
         
-        if($nbResult != 0){
+        if($nbResult > 0){
             $q->setMaxResults($nbResult);
         }
-
         return $q;
     }
-
     /**
      * Reverts given $entity to $revision by
      * restoring all fields from that $revision.
@@ -126,12 +115,10 @@ class LogEntryRepository extends EntityRepository
         $dql .= " AND log.objectClass = :objectClass";
         $dql .= " AND log.version <= :version";
         $dql .= " ORDER BY log.version ASC";
-
         $objectId = $wrapped->getIdentifier();
         $q = $this->_em->createQuery($dql);
         $q->setParameters(compact('objectId', 'objectClass', 'version'));
         $logs = $q->getResult();
-
         if ($logs) {
             $config = $this->getLoggableListener()->getConfiguration($this->_em, $objectMeta->name);
             $fields = $config['versioned'];
@@ -155,7 +142,6 @@ class LogEntryRepository extends EntityRepository
             throw new \Gedmo\Exception\UnexpectedValueException('Could not find any log entries under version: '.$version);
         }
     }
-
     /**
      * @param ClassMetadata $objectMeta
      * @param string        $field
@@ -170,7 +156,6 @@ class LogEntryRepository extends EntityRepository
         $mapping = $objectMeta->getAssociationMapping($field);
         $value   = $value ? $this->_em->getReference($mapping['targetEntity'], $value) : null;
     }
-
     /**
      * Get the currently used LoggableListener
      *
@@ -192,12 +177,10 @@ class LogEntryRepository extends EntityRepository
                     break;
                 }
             }
-
             if (is_null($this->listener)) {
                 throw new \Gedmo\Exception\RuntimeException('The loggable listener could not be found');
             }
         }
-
         return $this->listener;
     }
 }
